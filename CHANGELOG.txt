@@ -1,6 +1,10 @@
 Xp Track Changelog
 ========================
 
+1.9.26
+------
+- Fix CurseForge packaging so the addon TOC in XpTrack/ is found and flattened correctly
+
 1.9.25
 ------
 - Add GitHub Actions release packaging for reliable CurseForge uploads

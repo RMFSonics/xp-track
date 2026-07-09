@@ -1,5 +1,8 @@
 package-as: XpTrack
 
+move-folders:
+  XpTrack/XpTrack: XpTrack
+
 ignore:
   - "*.zip"
   - "TimeToLevel-CurseForge-Logo.png"
