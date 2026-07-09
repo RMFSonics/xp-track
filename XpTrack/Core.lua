@@ -82,6 +82,11 @@ local function HandleSlash(msg)
 		TimeToLevel.Settings.left = nil
 		TimeToLevel.Settings.top = nil
 		TimeToLevel.Settings.bottomOffset = 0
+		TimeToLevel.Settings.anchorPoint = nil
+		TimeToLevel.Settings.anchorRelPoint = nil
+		TimeToLevel.Settings.anchorRelativeTo = nil
+		TimeToLevel.Settings.anchorX = nil
+		TimeToLevel.Settings.anchorY = nil
 		TimeToLevel.BlizzardBarGeometry = nil
 		if TimeToLevel.RefreshBarGeometryFromEditMode then
 			TimeToLevel.RefreshBarGeometryFromEditMode(true)
@@ -194,7 +199,7 @@ local function InitAddon()
 	SlashCmdList["TIMETOLEVEL"] = HandleSlash
 
 	TimeToLevel.initialized = true
-	print(LABEL .. " v1.9.21 loaded. " .. SLASH .. " options | minimap right-click")
+	print(LABEL .. " v1.9.22 loaded. " .. SLASH .. " options | minimap right-click")
 end
 
 local function SafeInit()
@@ -213,6 +218,7 @@ local loader = CreateFrame("Frame")
 loader:RegisterEvent("ADDON_LOADED")
 loader:RegisterEvent("PLAYER_LOGIN")
 loader:RegisterEvent("PLAYER_ENTERING_WORLD")
+loader:RegisterEvent("PLAYER_LEAVING_WORLD")
 loader:RegisterEvent("PLAYER_LOGOUT")
 loader:SetScript("OnEvent", function(_, event, arg1)
 	if event == "ADDON_LOADED" and arg1 == ADDON_NAME then
@@ -243,7 +249,9 @@ loader:SetScript("OnEvent", function(_, event, arg1)
 					TimeToLevel.window:ApplyDefaultAnchor()
 				else
 					TimeToLevel.window:ApplyAnchor()
-					TimeToLevel.window:SyncToBlizzardBar()
+					if TimeToLevel.Settings.anchor ~= "free" and TimeToLevel.Settings.anchor ~= "editmode" then
+						TimeToLevel.window:SyncToBlizzardBar()
+					end
 				end
 				TimeToLevel.window:EnsureVisible()
 			end)
@@ -257,11 +265,11 @@ loader:SetScript("OnEvent", function(_, event, arg1)
 		if TimeToLevel.tracker then
 			TimeToLevel.tracker:OnEnterWorld()
 		end
-	elseif event == "PLAYER_LOGOUT" then
+	elseif event == "PLAYER_LEAVING_WORLD" or event == "PLAYER_LOGOUT" then
 		if TimeToLevel.window then
 			TimeToLevel.window:SavePlacement()
 		end
-		if TimeToLevel.tracker then
+		if event == "PLAYER_LOGOUT" and TimeToLevel.tracker then
 			TimeToLevel.tracker:SaveState()
 		end
 	end

@@ -8,7 +8,7 @@
 
 ## Author: RMFSonics
 
-## Version: 1.9.21
+## Version: 1.9.22
 
 ## SavedVariables: TimeToLevelDB
 

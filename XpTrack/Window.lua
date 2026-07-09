@@ -66,6 +66,100 @@ function Window:GetDefaultWidth()
 	return Window.DEFAULT_WIDTH
 end
 
+local function ResolveAnchorFrame(name)
+	if type(name) == "string" and name ~= "" then
+		local frame = _G[name]
+		if frame then
+			return frame
+		end
+	end
+	return UIParent
+end
+
+function Window:HasSavedAnchor()
+	local settings = TimeToLevel.Settings
+	return settings.anchorPoint ~= nil and settings.anchorX ~= nil and settings.anchorY ~= nil
+end
+
+function Window:SaveAnchorSettings()
+	local settings = TimeToLevel.Settings
+	if not self.frame or not settings then
+		return
+	end
+
+	local point, relativeTo, relPoint, x, y = self.frame:GetPoint(1)
+	if not point then
+		return
+	end
+
+	settings.anchorPoint = point
+	settings.anchorRelPoint = relPoint or point
+	settings.anchorX = x or 0
+	settings.anchorY = y or 0
+	if relativeTo and relativeTo.GetName then
+		settings.anchorRelativeTo = relativeTo:GetName() or "UIParent"
+	else
+		settings.anchorRelativeTo = "UIParent"
+	end
+
+	if settings.anchor == "free" then
+		local left = self.frame:GetLeft()
+		local top = self.frame:GetTop()
+		if left and top and UIParent then
+			settings.left = left
+			settings.top = UIParent:GetHeight() - top
+		end
+	end
+end
+
+function Window:ApplySavedAnchor()
+	local settings = TimeToLevel.Settings
+	if not self.frame or not settings then
+		return false
+	end
+
+	self:ApplyFrameLayer()
+	self.frame:ClearAllPoints()
+	self.frame:SetSize(
+		math.max(Window.MIN_WIDTH, settings.width or self:GetDefaultWidth()),
+		self:GetFrameHeight()
+	)
+
+	if self:HasSavedAnchor() then
+		local relativeTo = ResolveAnchorFrame(settings.anchorRelativeTo)
+		self.frame:SetPoint(
+			settings.anchorPoint,
+			relativeTo,
+			settings.anchorRelPoint or settings.anchorPoint,
+			settings.anchorX,
+			settings.anchorY
+		)
+		return true
+	end
+
+	if settings.anchor == "free" and settings.left and settings.top then
+		self.frame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", settings.left, -settings.top)
+		return true
+	end
+
+	return false
+end
+
+function Window:ClearSavedAnchor()
+	local settings = TimeToLevel.Settings
+	if not settings then
+		return
+	end
+
+	settings.anchorPoint = nil
+	settings.anchorRelPoint = nil
+	settings.anchorRelativeTo = nil
+	settings.anchorX = nil
+	settings.anchorY = nil
+	settings.left = nil
+	settings.top = nil
+end
+
 function Window:SavePlacement()
 	if not self.frame then
 		return
@@ -80,13 +174,8 @@ function Window:SavePlacement()
 		settings.height = self.frame:GetHeight()
 	end
 
-	if settings.anchor == "free" then
-		local left = self.frame:GetLeft()
-		local top = self.frame:GetTop()
-		if left and top and UIParent then
-			settings.left = left
-			settings.top = UIParent:GetHeight() - top
-		end
+	if settings.anchor == "free" or settings.anchor == "editmode" then
+		self:SaveAnchorSettings()
 	end
 
 	TimeToLevel.SaveSettings()
@@ -154,21 +243,24 @@ function Window:ApplyAnchor()
 	end
 
 	if settings.anchor == "editmode" then
-		local width = settings.width or self:GetDefaultWidth()
-		self.frame:SetSize(math.max(Window.MIN_WIDTH, width), self:GetFrameHeight())
-		if not self.frame:GetPoint(1) then
+		if not self:ApplySavedAnchor() then
+			self:ApplyFrameLayer()
 			self:ApplyDefaultAnchor()
 		end
-		self:ApplyFrameLayer()
 		return
 	end
 
 	self:ApplyFrameLayer()
 	self.frame:ClearAllPoints()
 
-	if settings.anchor == "free" and settings.left and settings.top then
-		self.frame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", settings.left, -settings.top)
-	elseif settings.anchor == "bottom" then
+	if settings.anchor == "free" then
+		if not self:ApplySavedAnchor() then
+			self:ApplyDefaultAnchor()
+		end
+		return
+	end
+
+	if settings.anchor == "bottom" then
 		self.frame:SetSize(
 			math.max(Window.MIN_WIDTH, settings.width or self:GetDefaultWidth()),
 			self:GetFrameHeight()

@@ -124,9 +124,18 @@ function TimeToLevel.RegisterEditModeFrame()
 
 	local default = TimeToLevel.GetEditModeDefaultPosition()
 	local ok, err = pcall(function()
-		lib:AddFrame(frame, function()
+		lib:AddFrame(frame, function(_, layoutName, point, x, y)
 			local settings = TimeToLevel.Settings
 			settings.anchor = "editmode"
+			if point and x and y then
+				settings.anchorPoint = point
+				settings.anchorRelPoint = point
+				settings.anchorX = x
+				settings.anchorY = y
+				settings.anchorRelativeTo = "UIParent"
+				settings.left = nil
+				settings.top = nil
+			end
 			if TimeToLevel.window then
 				TimeToLevel.window:Layout()
 				TimeToLevel.window:SavePlacement()
@@ -142,10 +151,6 @@ function TimeToLevel.RegisterEditModeFrame()
 
 	TimeToLevel.editModeLib = lib
 	TimeToLevel.editModeRegistered = true
-
-	if TimeToLevel.Settings.anchor ~= "free" then
-		TimeToLevel.Settings.anchor = "editmode"
-	end
 
 	return true
 end
