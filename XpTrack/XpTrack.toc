@@ -16,6 +16,8 @@
 
 ## X-Category: Interface Enhancements
 
+## X-Curse-Project-ID: 1602051
+
 
 
 libs\LibStub\LibStub.lua
