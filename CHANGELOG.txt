@@ -1,0 +1,48 @@
+Xp Track Changelog
+========================
+
+1.9.22
+------
+- Fixed bar position not persisting after /reload or relog
+- Save full anchor coordinates for Edit Mode and shift-drag placement
+- Restore saved position on login
+- Save placement on PLAYER_LEAVING_WORLD so /reload keeps position
+- Stopped auto-switching bottom anchor to editmode without saved coordinates
+
+1.9.21
+------
+- Added custom logo in addon list, options menu, options panel, and minimap button
+- Added Textures/Logo.png and Logo-32.png
+
+1.9.20
+------
+- Updated for WoW Classic TBC Anniversary 2.5.6 (build 68502, interface 20506)
+
+1.9.19
+------
+- Renamed addon folder and TOC from TimeToLevel to XpTrack
+- Primary slash commands: /xptrack and /xp
+- Legacy aliases kept: /ttl and /timetolevel
+- Updated minimap and options labels for Xp Track branding
+- Updated frame global names to XpTrack prefix
+
+1.9.18
+------
+- Rebranded display name to Xp Track (internal namespace unchanged for settings compatibility)
+- Quest turn-in preview on bar and in text line
+- Rested XP shown as +Xk RXP
+- Bar scale slider (50-150%) and opacity slider in options
+- Edit Mode placement support
+- Minimap button with options access
+- Default bottom-center anchor above action bar
+- Gryphon caps and Blizzard XP bar border options
+- Per-character session tracking across reloads
+
+Earlier (pre-release)
+---------------------
+- XP bar replacement with level %, XP/min, ETA, and XP remaining
+- Compact bar text format
+- Shift+drag to move bar, shift+right-click to cycle opacity
+- Hide Blizzard default XP bar
+- LibEditMode integration for Edit Mode dragging
+- Saved variables: TimeToLevelDB / TimeToLevelCharDB (preserved from TimeToLevel)
