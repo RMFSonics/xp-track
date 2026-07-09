@@ -1,6 +1,16 @@
 Xp Track Changelog
 ========================
 
+1.9.24
+------
+- XP/min and ETA now use a rolling 5-minute average instead of whole-level session average
+- Bar stats refresh every 5 seconds instead of every 1 second (XP gains still update instantly)
+- Rate needs at least 30 seconds of recent data before showing
+
+1.9.23
+------
+- Bar text always shows actual XP left to level; quest turn-in XP stays in the separate quest segment
+
 1.9.22
 ------
 - Fixed bar position not persisting after /reload or relog

@@ -3,6 +3,68 @@ TimeToLevel = TimeToLevel or {}
 TimeToLevel.Tracker = {}
 local Tracker = TimeToLevel.Tracker
 
+Tracker.RATE_WINDOW_SECONDS = 300
+Tracker.MIN_RATE_SECONDS = 30
+Tracker.DISPLAY_TICK_SECONDS = 5
+
+function Tracker:ResetXpSamples()
+	self.xpSamples = {}
+end
+
+function Tracker:RecordXpGain(amount)
+	if not amount or amount <= 0 then
+		return
+	end
+
+	self.xpSamples = self.xpSamples or {}
+	self.xpSamples[#self.xpSamples + 1] = {
+		t = GetTime(),
+		xp = amount,
+	}
+
+	local cutoff = GetTime() - Tracker.RATE_WINDOW_SECONDS
+	local write = 1
+	for i = 1, #self.xpSamples do
+		local sample = self.xpSamples[i]
+		if sample.t >= cutoff then
+			self.xpSamples[write] = sample
+			write = write + 1
+		end
+	end
+	for i = write, #self.xpSamples do
+		self.xpSamples[i] = nil
+	end
+end
+
+function Tracker:GetRecentXpRate()
+	local samples = self.xpSamples
+	if not samples or #samples == 0 then
+		return nil
+	end
+
+	local now = GetTime()
+	local cutoff = now - Tracker.RATE_WINDOW_SECONDS
+	local totalXp = 0
+	local oldest = now
+
+	for i = 1, #samples do
+		local sample = samples[i]
+		if sample.t >= cutoff then
+			totalXp = totalXp + sample.xp
+			if sample.t < oldest then
+				oldest = sample.t
+			end
+		end
+	end
+
+	if totalXp <= 0 then
+		return nil
+	end
+
+	local elapsed = math.max(Tracker.MIN_RATE_SECONDS, now - oldest)
+	return totalXp / elapsed
+end
+
 function Tracker:Init(window)
 	self.window = window
 	self.level = TimeToLevel.GetPlayerLevel()
@@ -10,6 +72,8 @@ function Tracker:Init(window)
 	self.sessionXpEarned = 0
 	self.levelStartTime = GetTime()
 	self.hasXpSample = false
+
+	self:ResetXpSamples()
 
 	TimeToLevel.XpGain:Init()
 	TimeToLevel.QuestXp:Init()
@@ -65,6 +129,7 @@ function Tracker:ResetLevelSession(level, skipSave)
 	self.sessionXpEarned = 0
 	self.levelStartTime = GetTime()
 	self.hasXpSample = false
+	self:ResetXpSamples()
 	if not skipSave then
 		self:SaveState()
 	end
@@ -105,9 +170,11 @@ function Tracker:OnXPUpdate(forceRefresh)
 	end
 
 	if self.lastXp ~= nil and xp > self.lastXp then
+		local gained = xp - self.lastXp
 		local xpRequired = TimeToLevel.GetPlayerXPMax()
 		TimeToLevel.XpGain:OnXpApplied(self.lastXp, xp, xpRequired)
-		self.sessionXpEarned = (self.sessionXpEarned or 0) + (xp - self.lastXp)
+		self.sessionXpEarned = (self.sessionXpEarned or 0) + gained
+		self:RecordXpGain(gained)
 		self.hasXpSample = true
 		self:SaveState()
 	end
@@ -148,12 +215,19 @@ function Tracker:GetStats()
 	local xpPerHour = 0
 	local etaSeconds = nil
 
-	if self.hasXpSample and elapsed > 0 and (self.sessionXpEarned or 0) > 0 then
+	local recentXpPerSecond = self:GetRecentXpRate()
+	if recentXpPerSecond and recentXpPerSecond > 0 then
+		xpPerSecond = recentXpPerSecond
+		xpPerMinute = xpPerSecond * 60
+		xpPerHour = xpPerSecond * 3600
+	elseif self.hasXpSample and elapsed >= Tracker.MIN_RATE_SECONDS and (self.sessionXpEarned or 0) > 0 then
 		xpPerSecond = self.sessionXpEarned / elapsed
 		xpPerMinute = xpPerSecond * 60
 		xpPerHour = xpPerSecond * 3600
+	end
 
-		if xpRemaining > 0 and xpPerSecond > 0 then
+	if xpPerSecond > 0 then
+		if xpRemaining > 0 then
 			etaSeconds = xpRemaining / xpPerSecond
 		elseif xpRemaining == 0 then
 			etaSeconds = 0
@@ -230,7 +304,7 @@ function Tracker:StartTicker()
 	self.tickerFrame.elapsed = 0
 	self.tickerFrame:SetScript("OnUpdate", function(frame, elapsed)
 		frame.elapsed = frame.elapsed + elapsed
-		if frame.elapsed >= 1 then
+		if frame.elapsed >= Tracker.DISPLAY_TICK_SECONDS then
 			frame.elapsed = 0
 			self:Refresh(false)
 		end

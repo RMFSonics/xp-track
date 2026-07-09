@@ -905,9 +905,6 @@ function Window:BuildBarText(stats)
 	end
 
 	local displayRemaining = stats.xpRemaining or 0
-	if stats.questXpTotal and stats.questXpTotal > 0 and stats.xpRemainingAfterQuests ~= nil then
-		displayRemaining = stats.xpRemainingAfterQuests
-	end
 
 	local parts = {
 		string.format("Lv%d %.1f%%", stats.level, stats.percent or 0),
