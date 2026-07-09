@@ -199,7 +199,7 @@ local function InitAddon()
 	SlashCmdList["TIMETOLEVEL"] = HandleSlash
 
 	TimeToLevel.initialized = true
-	print(LABEL .. " v1.9.24 loaded. " .. SLASH .. " options | minimap right-click")
+	print(LABEL .. " v1.9.25 loaded. " .. SLASH .. " options | minimap right-click")
 end
 
 local function SafeInit()

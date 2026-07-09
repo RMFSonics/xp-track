@@ -1,0 +1,11 @@
+package-as: XpTrack
+
+ignore:
+  - "*.zip"
+  - "TimeToLevel-CurseForge-Logo.png"
+  - "XpTrack-CurseForge-Logo.png"
+  - "README.md"
+  - ".github"
+
+manual-changelog: CHANGELOG.txt
+license-output: LICENSE

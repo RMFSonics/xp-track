@@ -1,6 +1,10 @@
 Xp Track Changelog
 ========================
 
+1.9.25
+------
+- Add GitHub Actions release packaging for reliable CurseForge uploads
+
 1.9.24
 ------
 - XP/min and ETA now use a rolling 5-minute average instead of whole-level session average
